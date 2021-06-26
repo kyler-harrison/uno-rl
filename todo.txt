@@ -1,0 +1,9 @@
+no code:
+[x] define rules of game
+[] state/action space/reward
+[] define how to optimize value function / learn
+
+code:
+[] write simple game play
+[] write bot player strategy
+[] start defining agent...?
