@@ -1,0 +1,10 @@
+dqn:
+	is it just a nn that ouputs to 108 neurons? where each is the predicted q-value?
+
+	so, run state through network and select max predicted q val of valid card in agent's hand?
+
+	should i not do a unique index for every card? so, that way if a card is the same, it has the same index?
+	reduce dimensionality in network? would it even matter? ex. i would expect agent to learn there is no difference
+    between idx 99 and idx 100 if they're both a blue 3. but then again, maybe the amount of cards could matter
+	somehow, like knowing that idx 99 and 100 have been played is useful bc maybe that wouldn't be captured if
+	you use non-unique indexes? idk
