@@ -1,7 +1,7 @@
 class Opponent(Player):
 
     def __init__():
-        super().__init()
+        super().__init__()
 
     def decision(self, top_card):
         """
