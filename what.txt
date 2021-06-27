@@ -6,7 +6,7 @@ Input:
 	game state: card on top of stack (all previous cards in stack?), current cards (colors, nums, specials), how many cards opponent has
 	opponent: 
 		simple strategy (in order of preference):
-			if you have color match: place in preference: special (+2, skip, reverse), lowest num
+			if you have color match: place in preference: special (+2, skip, reverse), lowest num to highest num
 			if no color match: check for card face (i.e. matching num or special) match
 			if no face match: check for any wild cards, preference: +4, wild
   			if none of the above: draw card, check above conditions
