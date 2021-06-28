@@ -2,11 +2,16 @@ import random
 
 class Game:
 
-    def __init__(self):
-        self.deck = []  # deck of cards that is shuffled and removed from 
-        self.play_deck = []  # deck of cards that have been played and added to, in order, will be in agent's state
-        self.cards_drawn = 0
-        self.size_deck = 108  # 108 total cards (see below), will be indexed 0..107
+    def __init__(self, reshuffle=False):
+        # deck of cards that is shuffled and removed from 
+        self.deck = []  
+
+        # deck of cards that are played, in agent's state
+        # keeping all cards played throughout all shuffles
+        if not reshuffle: 
+            self.play_deck = []  
+
+        self.cards_remain = 108  # countdown when a card is drawn, reshuffle new deck when 0
 
         # card format: (idx int, number or special value str, color str)
 
@@ -67,23 +72,25 @@ class Game:
 
     def draw(self):
         """ draw top card (i.e. self.deck[-1]) from deck and return card tuple """
-        card_drawn = self.deck.pop()
-        self.cards_drawn += 1
+        card = self.deck.pop()
+        self.cards_remain -= 1
 
-        # reshuffle deck if cards have been played (TODO make sure agent has a separate list tracking all cards that won't reset)
-        if self.cards_drawn == self.deck_size:
-            self.__init__()
+        # reshuffle deck if cards have been played (NOTE this does not clear self.play_deck)
+        if self.cards_remain == 0:
+            self.__init__(reshuffle=True)
 
-        return card_drawn
+        return card
 
-    def deal(self, players, num):
+    def deal(self, players, cards_per):
         """ 
         players is list of player objects (Opponent and Agent only, but game can handle more 
         - well as long as len(players) * cards_per doesn't exceed 108)
         """
-        cards_per = 7
-
         for player in players:
-            card = self.draw()  # cards already randomized, so can just pop from deck
-            player.add_card(card)
+            for card_per in range(cards_per):
+                card = self.draw()  # cards already randomized, so can just pop from deck
+                player.add_card(card)
+
+    def handle_play(self, card):
+        self.play_deck.append(card)
 
