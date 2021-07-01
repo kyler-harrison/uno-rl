@@ -1,0 +1,55 @@
+q-learning:
+	init a states x action matrix with zeros:
+	[[0, 0],
+	 [0, 0],
+	 [0, 0]]
+
+	this example has 3 possible states and 2 actions
+
+	training:
+		basically just fill in table with cost/reward of each state/action pair (explore/exploit tradeoffs)
+
+	after training:
+		given state, take the action that has the minimum/maximum expected cost/reward
+
+	i think that's pretty much it at a high level
+
+
+dqn:
+	q-learning, but instead of creating a table (dimensionality gets crazy real fast), use nn to predict
+	a q-value of a given input. i believe training is just optimizing weights/biases like any ol nn
+
+	example net:
+		input state matrix
+		output estimated q-value for each action
+		compute loss as difference between actual q-value (reward/cost) and predicted q-value
+		^ actually maybe not, store a history of actions and randomly sample one to compute loss and update params,
+        this is done so that the network does not start to shift its weights to any given succession of events too much,
+        generalization thing, probably pretty important in certain contexts
+		dqn paper used 10 million frames with a history size of 1 million frames in training
+		print out average total reward and average q-value along the way to see how training is going (should trend upwards across epochs)
+
+	is it just a nn that ouputs to 108 neurons? where each is the predicted q-value?
+
+	so, run state through network and select max predicted q val of valid card in agent's hand?
+
+	should i not do a unique index for every card? so, that way if a card is the same, it has the same index?
+	reduce dimensionality in network? would it even matter? ex. i would expect agent to learn there is no difference
+    between idx 99 and idx 100 if they're both a blue 3. but then again, maybe the amount of cards could matter
+	somehow, like knowing that idx 99 and 100 have been played is useful bc maybe that wouldn't be captured if
+	you use non-unique indexes? idk
+
+
+reward:
+	could do points per card like this (although I'm not entirely sure if the relevance of the points carries over):
+		"All number cards are the same value as the number on the card (e.g. a 9 is 9 points). “Draw Two" – 20 Points, “Reverse" 
+		– 20 Points, “Skip" – 20 Points, “Wild" – 50 Points, and “Wild Draw Four" – 50 Points. The first player to attain 500 
+		points wins the game. This is the alternative Uno gameplay proposed by Mattel."
+	^ i mean i guess i could play by these rules - wouldn't be much of a change in strategy or game play
+
+	stanford paper did 0 if game continues, 1 if win, 0 if lost
+
+	maybe could still follow the first-to-have-an-empty-hand-wins rule, but use the points per card for step by step reward?
+	idk how well it could learn from only getting a reward at the end of the game
+	just need some way to measure the "cost" of each play - consider the opponent's state in reward but dont put it in state?
+
