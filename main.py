@@ -24,42 +24,69 @@ train loop:
     if Opp has valid card:
         Opp plays card based on top card of play deck (for simplicity Opp always goes first)
     else:
-        Opp draws card from game deck, if valid play card 
+        Opp draws card from game deck
+
+        if card drawn is valid: 
+            Opp plays card, opp_valid = True
+        else:
+            opp_valid = False
 
     game loop:
-        check for special gameplay (i.e. skip, reverse, draw 2, wild draw 4) -> update Agent correspondingly
-        Agent state/hand/whatever_else is updated with Opp placed card
-        nn_out = Agent passes state through nn
+        if opp_valid = True:
+            check for special gameplay (i.e. skip, reverse, draw 2, wild draw 4) -> update Agent correspondingly
+            Agent state/hand/whatever_else is updated with Opp placed card
 
-        prob = rando choice 0 to 1
-        if prob <= explore prob:
-            action = card idx of rando valid choice from nn_out
+        if Agent has valid card:
+            nn_out = Agent passes state through nn
         else:
-            action = card idx of max valid choice from nn_out
-        expected_reward = nn_out[action]
+            Agent draws card from game deck
 
-        Agent plays card idx action (update Game and Agent correspondingly)
-        if len(Agent.cards) == 0:
-            reward = 1 + discount_factor * max(nn_output)  # win
-            break loop
+            if card drawn is valid:
+                agent_valid = True
+                nn_out = Agent passes state through nn
+            else:
+                agent_valid = False
+        
+        if agent_valid:
+            prob = rando choice 0 to 1
+            if prob <= explore prob:
+                action = card idx of rando valid choice from nn_out
+            else:
+                action = card idx of max valid choice from nn_out
+            expected_reward = nn_out[action]
 
-        check for special gameplay
+            Agent plays card idx action (update Game and Agent correspondingly)
+            if len(Agent.cards) == 0:
+                reward = 1 + discount_factor * max(nn_output)  # win
+                break loop
 
-        Opp takes action
-        if len(Opp.cards) == 0:
+            check for special gameplay
+
+        if Opp has valid card:
+            Opp plays card, opp_valid = True
+        else:
+            Opp draws
+
+            if card drawn valid:
+                Opp plays card, opp_valid = True
+            else:
+                opp_valid = False
+
+        if opp_valid and len(Opp.cards) == 0:
             reward = -1 + discount_factor * max(nn_output)  # loss
             break loop
         
-        reward = 0 + discount_factor * max(nn_output)  # continuation of game
+        if agent_valid:
+            reward = 0 + discount_factor * max(nn_output)  # continuation of game
 
-        if len(cache) == cache_limit: 
-            cache.pop()
-        
-        cache.append((expected_reward, reward))
-        update_pair = rando expected_reward/reward pair from cache
-        loss = MSE(update_pair)
-        update nn params using SGD or Adam
+            if len(cache) == cache_limit: 
+                cache.pop()
+            
+            cache.append((expected_reward, reward))
+            update_pair = rando expected_reward/reward pair from cache
+            loss = MSE(update_pair)
+            update nn params using SGD or Adam
 
-        explore_prob -= explore_anneal
+            explore_prob -= explore_anneal
 
 """
