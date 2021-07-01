@@ -118,7 +118,11 @@ class Opponent(Player):
                 del self.cards[self.cards.index(card)]
                 return (card[0], card[1], max_color)
 
-        # no valid card found. outside of this scope: draw another card and check again (if haven't already)
+        # NOTE if wild red is played, (0, "wild", "red") will be returned, outside of scope
+        # need to catch this and change the starting idx to the correct wild idx defined in
+        # Game wild_dict, this is important for defining Agent's state and action space
+
+        # no valid card found. outside of this scope: draw another card and call opponent's decision() again (if haven't already)
         return None
 
     def __pick_color(self):
