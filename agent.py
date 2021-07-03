@@ -55,6 +55,17 @@ class Agent(Player):
             self.state[card[0]] -= 1
             del self.cards[self.cards.index(card)]
 
+    def has_valid(self, top_card):
+        """
+        returns boolean if has a playable card or not
+        top_card: card on top of play deck (card to match)
+        """
+        for card in self.cards:
+            if card[0] == top_card[0] or card[1] == top_card[1] or card[2] == top_card[2] or card[1] == "wild" or card[1] == "wild_draw_4":
+                return True
+        return False
+
+
     def decision(self, dqn_out):
         """
         decide which card to play based on dqn
