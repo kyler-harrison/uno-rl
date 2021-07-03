@@ -74,12 +74,15 @@ class Agent(Player):
         top_card: top card on play deck
         dqn_out: output vector from deep q network
         """
+        # first get only cards in agent's hand
+        hand_indexes = [card[0] for card in self.cards]
+        dqn_valid = [(card_idx, q_val) for card_idx, q_val in enumerate(dqn_out) if card_idx in hand_indexes]
 
-        # get valid outputs by idx (can't None others bc unassigned wild cards have None in card[2])
-        dqn_valid = [(card_idx, q_val) for card_idx, q_val in enumerate(dqn_out) if self.is_valid((card_idx, "PEE", "POO"), top_card)]  
-        dqn_valid.sort(key=lambda x: x[1], reverse=True)  # sort max to min predicted q value
+        # valid cards by game rules
+        dqn_valid = [card_tuple for card_tuple in dqn_valid if self.is_valid(card_tuple, top_card)]
 
         if len(dqn_valid) > 0:  # this should always be true
+            dqn_valid.sort(key=lambda x: x[1], reverse=True)  # sort max to min predicted q value
             explore_prob = random.random()
 
             if explore_prob <= epsilon:
