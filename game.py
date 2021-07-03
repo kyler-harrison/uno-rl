@@ -30,13 +30,6 @@ class Game:
         # track unique idx
         uni_idx = 0
 
-        # wild cards
-        self.deck += [(uni_idx, "wild", None) for _ in range(num_wild)]  
-        uni_idx += 1
-
-        # wild draw 4 cards
-        self.deck += [(uni_idx, "wild_draw_4", None) for _ in range(uni_idx, uni_idx + num_wild_draw_4)]  
-        uni_idx += 1 
 
         # color cards
         for color in colors:
@@ -60,9 +53,7 @@ class Game:
 
             # skip
             self.deck += [(uni_idx, "skip", color) for _ in range(uni_idx, uni_idx + num_skip)]
-            uni_idx += 1
 
-        random.shuffle(self.deck)  # shuffle deck
         self.cards_remain = len(self.deck)  # countdown when a card is drawn, reshuffle new deck when 0
 
         # used to define a wild card index once Opponent has decided on color 
@@ -70,8 +61,20 @@ class Game:
         wild_set += [(f"{elem[0]}_draw_4", elem[1]) for elem in wild_set]
         self.wild_dict = {}
         for wild_tuple in wild_set:
-            self.wild_dict[wild_tuple] = uni_idx
             uni_idx += 1
+            self.wild_dict[wild_tuple] = uni_idx
+        uni_idx += 1
+
+        # wild cards
+        self.deck += [(uni_idx, "wild", None) for _ in range(num_wild)]  
+        uni_idx += 1
+
+        # wild draw 4 cards
+        self.deck += [(uni_idx, "wild_draw_4", None) for _ in range(uni_idx, uni_idx + num_wild_draw_4)]  
+
+        self.num_unique_cards = uni_idx
+
+        random.shuffle(self.deck)  # shuffle deck
 
         # NOTE irl top to bottom of deck will be idx -1..0, so top card on deck is self.deck[-1]
         # doing it this way so that self.deck.pop() removes card tuple from deck and returns it
