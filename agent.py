@@ -97,3 +97,6 @@ class Agent(Player):
 
             return (action_card_idx, action_tuple[0], action_tuple[1])
 
+        else:
+            return None   # i dont think this should ever happen, but idk might be an edge case somewhere
+
