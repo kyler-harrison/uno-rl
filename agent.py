@@ -68,23 +68,29 @@ class Agent(Player):
             self.state[card[0]] -= 1
             del self.cards[self.cards.index(card)]
 
-    def decide_card(self, dqn_out):
+    def decide_card(self, top_card, dqn_out):
         """
         decide which card to play based on dqn, returns card tuple
+        top_card: top card on play deck
         dqn_out: output vector from deep q network
         """
 
-        # get valid outputs by idx (cant None others bc unassigned wild cards have None in card[2])
-        dqn_valid = [(card_idx, q_val) for card_idx, q_val in enumerate(dqn_out) if self.is_valid(card_idx, "PEE", "POO")]  
+        # get valid outputs by idx (can't None others bc unassigned wild cards have None in card[2])
+        dqn_valid = [(card_idx, q_val) for card_idx, q_val in enumerate(dqn_out) if self.is_valid((card_idx, "PEE", "POO"), top_card)]  
+        dqn_valid.sort(key=lambda x: x[1], reverse=True)  # sort max to min predicted q value
 
         if len(dqn_valid) > 0:  # this should always be true
             explore_prob = random.random()
 
-            # TODO was here
             if explore_prob <= epsilon:
                 # explore
-                pass
+                action_card_idx = random.choice(dqn_valid)[0]
             else:
                 # exploit
-                pass
+                action_card_idx = dqn_valid[0][0]
+
+            # get face value and color of card
+            action_tuple = self.card_dict[action_card_idx]
+
+            return (action_card_idx, action_tuple[0], action_tuple[1])
 
