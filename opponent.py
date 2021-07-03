@@ -2,10 +2,10 @@ from player import Player
 
 class Opponent(Player):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, card_dict):
+        super().__init__(card_dict)
 
-    def decide_card(self, top_card, wild_dict, after_draw=False):
+    def decide_card(self, top_card, after_draw=False):
         """
         implements opponent strategy defined in what.txt, calls play_card()
         top_card: the top card on the play deck (defined in game.py)
@@ -98,6 +98,13 @@ class Opponent(Player):
         # and change the color in the wild card from None to the max color
         # index corresponding to wild color in agent's action space should be returned in this tuple
 
+        # reverse mapping for wild cards (used below)
+        wild_dict = {}  
+        for card_idx, value_tuple in self.card_dict.items():
+            if card_idx != 57 and card_idx != 58:
+                if value_tuple[0] == "wild" or value_tuple[0] == "wild_draw_4":
+                    wild_dict[value_tuple] = card_idx
+
         # TODO redundant, this could be a single function
 
         for card in self.cards:
@@ -122,7 +129,7 @@ class Opponent(Player):
                 self.remove_card(card)
                 return (wild_dict[(card[1], max_color)], card[1], max_color)
 
-        # no valid card found. outside of this scope: draw another card and call opponent's decision() again (if haven't already)
+        # no valid card found
         return None
 
     def __pick_color(self):
