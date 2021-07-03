@@ -1,7 +1,11 @@
 class Player:
 
-    def __init__(self):
+    def __init__(self, card_dict):
+        """
+        card_dict: dictionary mapping unique card index to card value (defined in game.py)
+        """
         self.cards = []
+        self.card_dict = card_dict
 
     def add_card(self, card):
         """
