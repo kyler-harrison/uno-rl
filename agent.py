@@ -3,7 +3,7 @@ from player import Player
 
 class Agent(Player):
 
-    def __init__(self, num_cards, cache_limit, discount_factor, epsilon, epsilon_final, anneal):
+    def __init__(self, num_cards, card_dict, cache_limit, discount_factor, epsilon, epsilon_final, anneal):
         """
         num_cards: number of playable cards, should be gameObj.num_unique_cards
         cache_limit: max size for memory cache (where previous (state, predicted_q_val, true_reward) are stored)
@@ -12,7 +12,7 @@ class Agent(Player):
         epsilon_final: final probability of choosing to explore over exploit
         anneal: amount to decrease epsilon by after each pass through dqn
         """
-        super().__init__()
+        super().__init__(card_dict)
         # state: 
         # [num_red_0, num_red_1, ..., num_blue_reverse, num_wild_red, num_wild_yellow, ..., num_wild_draw_4_blue, play_deck[0], ..., play_deck[n]]
         # should be gameObj.num_unique_cards (last two indexes are unassigned wild/wild_draw_4 - handled in game.py)
