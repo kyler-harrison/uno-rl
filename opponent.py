@@ -5,11 +5,12 @@ class Opponent(Player):
     def __init__(self):
         super().__init__()
 
-    def decide_card(self, top_card, after_draw=False):
+    def decide_card(self, top_card, wild_dict, after_draw=False):
         """
         implements opponent strategy defined in what.txt, calls play_card()
-        top_card: the top card on the play deck (defined in game)
+        top_card: the top card on the play deck (defined in game.py)
         after_draw: if player has already searched and drew a card, true
+        wild_dict: mapping of ("wild", "color") to index in state (defined in game.py)
         """
 
         # after draw, know that only one match is possible, so whichever card matches first is the only option
@@ -95,6 +96,7 @@ class Opponent(Player):
 
         # check for wild cards
         # and change the color in the wild card from None to the max color
+        # index corresponding to wild color in agent's action space should be returned in this tuple
 
         # TODO redundant, this could be a single function
 
@@ -107,7 +109,7 @@ class Opponent(Player):
                     return None
 
                 self.remove_card(card)
-                return (card[0], card[1], max_color)
+                return (wild_dict[(card[1], max_color)], card[1], max_color)
 
         for card in self.cards:
             if card[1] == "wild":
@@ -118,11 +120,7 @@ class Opponent(Player):
                     return None
 
                 self.remove_card(card)
-                return (card[0], card[1], max_color)
-
-        # NOTE if wild red is played, (wrong_idx, "wild", "red") will be returned, outside of scope
-        # need to catch this and change wrong_idx to the correct wild idx defined in
-        # Game.wild_dict, this is important for defining Agent's state and action space
+                return (wild_dict[(card[1], max_color)], card[1], max_color)
 
         # no valid card found. outside of this scope: draw another card and call opponent's decision() again (if haven't already)
         return None
