@@ -55,7 +55,6 @@ class Agent(Player):
         card: card tuple (if wild it will have a color assigned - decision returns this for the play deck)
         """
         # handle wild card with assigned color
-        # TODO check this 
         if card[1] == "wild_draw_4":
             for i in range(4):
                 self.state[-1 - (1 + i)] -= 1
@@ -87,16 +86,31 @@ class Agent(Player):
 
             if explore_prob <= epsilon:
                 # explore
-                action_card_idx = random.choice(dqn_valid)[0]
+                action = random.choice(dqn_valid)
+                action_card_idx = action[0] 
+                expected_q = action[1]
             else:
                 # exploit
-                action_card_idx = dqn_valid[0][0]
+                action = dqn_valid[0]
+                action_card_idx = action[0]
+                expected_q = action[1]
 
             # get face value and color of card
             action_tuple = self.card_dict[action_card_idx]
 
-            return (action_card_idx, action_tuple[0], action_tuple[1])
+            return (action_card_idx, action_tuple[0], action_tuple[1]), expected_q
 
         else:
-            return None   # i dont think this should ever happen, but idk might be an edge case somewhere
+            return None, None  # i dont think this should ever happen, but idk might be an edge case somewhere
+
+    def update_cache(self, expected_reward, reward):
+        """
+        update agent's state cache (current state will correspond to most recent reward)
+        expected_reward: dqn output value (predicted q) for selected action 
+        reward: actual reward for taking action
+        """
+        self.cache.insert(0, (self.state, expected_reward, reward))
+
+        if len(self.cache) > self.cache_limit:
+            self.cache.pop()
 
