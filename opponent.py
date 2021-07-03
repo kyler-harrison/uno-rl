@@ -96,6 +96,8 @@ class Opponent(Player):
         # check for wild cards
         # and change the color in the wild card from None to the max color
 
+        # TODO redundant, this could be a single function
+
         for card in self.cards:
             if card[1] == "wild_draw_4":
                 max_color = self.__pick_color()
@@ -118,9 +120,9 @@ class Opponent(Player):
                 self.remove_card(card)
                 return (card[0], card[1], max_color)
 
-        # NOTE if wild red is played, (0, "wild", "red") will be returned, outside of scope
-        # need to catch this and change the starting idx to the correct wild idx defined in
-        # Game wild_dict, this is important for defining Agent's state and action space
+        # NOTE if wild red is played, (wrong_idx, "wild", "red") will be returned, outside of scope
+        # need to catch this and change wrong_idx to the correct wild idx defined in
+        # Game.wild_dict, this is important for defining Agent's state and action space
 
         # no valid card found. outside of this scope: draw another card and call opponent's decision() again (if haven't already)
         return None
