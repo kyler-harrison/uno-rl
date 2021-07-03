@@ -72,7 +72,8 @@ class Game:
         # wild draw 4 cards
         self.deck += [(uni_idx, "wild_draw_4", None) for _ in range(uni_idx, uni_idx + num_wild_draw_4)]  
 
-        self.num_unique_cards = uni_idx
+        # number of playable cards (can have multiple of each)
+        self.num_unique_cards = uni_idx - 2  # unassigned wilds (last two indexes) are only placeholders
 
         random.shuffle(self.deck)  # shuffle deck
 
