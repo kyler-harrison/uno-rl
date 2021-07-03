@@ -148,6 +148,11 @@ class Opponent(Player):
             if count > max_count:
                 max_color = color
                 max_count = count
+        
+        # this happens if hand is all wilds or you only have one card
+        if max_color == None:
+            # just choosing red bc i dont want to import random
+            return "red" 
 
         return max_color
 
