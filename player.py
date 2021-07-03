@@ -40,10 +40,10 @@ class Player:
         # it's called efficiency bro, don't have to repeat full search through hand
         if after_draw:
             card = self.cards[-1]  # drawn card will be most recently appended
-            return is_valid(card, top_card)
+            return self.is_valid(card, top_card)
         else:
             for card in self.cards:
-                return is_valid(card, top_card)
+                return self.is_valid(card, top_card)
 
         return False
 
