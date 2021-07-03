@@ -19,19 +19,19 @@ class Opponent(Player):
 
             if card[2] == top_card[2] and top_card[2] != None:
                 # color
-                del self.cards[self.cards.index(card)]
+                self.remove_card(card)
                 return card
             elif card[1] == top_card[1] and top_card[2] != None:
                 # suit
-                del self.cards[self.cards.index(card)]
+                self.remove_card(card)
                 return card
             elif card[1] == top_card[1] and top_card[1] == "wild_draw_4":
                 # wild draw 4
-                del self.cards[self.cards.index(card)]
+                self.remove_card(card)
                 return card
             elif card[1] == top_card[1] and top_card[1] == "wild":
                 # wild
-                del self.cards[self.cards.index(card)]
+                self.remove_card(card)
                 return card
             else:
                 return None
@@ -49,18 +49,18 @@ class Opponent(Player):
             # first search for draw_2
             for i, match in enumerate(color_matches):
                 if match[1] == "draw_2":
-                    del self.cards[self.cards.index(match)]
+                    self.remove_card(card)
                     return match
 
             # then search for skip/reverse 
             for i, match in enumerate(color_matches):
                 if match[1] == "skip" or match[1] == "reverse":
-                    del self.cards[self.cards.index(match)]
+                    self.remove_card(card)
                     return match
 
             # if no specials, pop will return a number card that matches the color
             match = color_matches.pop()
-            del self.cards[self.cards.index(match)]
+            self.remove_card(card)
             return match 
 
         # TODO make this a generic fun for the above and the below (redundant)
@@ -79,18 +79,18 @@ class Opponent(Player):
             # first search for draw_2
             for i, match in enumerate(suit_matches):
                 if match[1] == "draw_2":
-                    del self.cards[self.cards.index(match)]
+                    self.remove_card(card)
                     return match
 
             # then search for skip/reverse 
             for i, match in enumerate(suit_matches):
                 if match[1] == "skip" or match[1] == "reverse":
-                    del self.cards[self.cards.index(match)]
+                    self.remove_card(card)
                     return match
 
             # if no specials, pop will return a number card that matches the
             match = suit_matches.pop()
-            del self.cards[self.cards.index(match)]
+            self.remove_card(card)
             return match 
 
         # check for wild cards
@@ -104,7 +104,7 @@ class Opponent(Player):
                 if max_color == None:
                     return None
 
-                del self.cards[self.cards.index(card)]
+                self.remove_card(card)
                 return (card[0], card[1], max_color)
 
         for card in self.cards:
@@ -115,7 +115,7 @@ class Opponent(Player):
                 if max_color == None:
                     return None
 
-                del self.cards[self.cards.index(card)]
+                self.remove_card(card)
                 return (card[0], card[1], max_color)
 
         # NOTE if wild red is played, (0, "wild", "red") will be returned, outside of scope
