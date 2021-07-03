@@ -6,8 +6,7 @@ class Game:
         # deck of cards that is shuffled and removed from 
         self.deck = []  
 
-        # deck of cards that are played, in agent's state
-        # keeping all cards played throughout all shuffles
+        # deck of all cards that are played throughout all shuffles
         if not reshuffle: 
             self.play_deck = []  
 
@@ -29,7 +28,6 @@ class Game:
 
         # track unique idx
         uni_idx = 0
-
 
         # color cards
         for color in colors:
@@ -93,8 +91,9 @@ class Game:
 
     def deal(self, players, cards_per):
         """ 
-        players is list of player objects (Opponent and Agent only, but game can handle more - well
-        as long as len(players) * cards_per doesn't exceed the total number of cards (108))
+        players: list of player objects (Opponent and Agent only, but game can handle more - well
+                 as long as len(players) * cards_per doesn't exceed the total number of cards (108))
+        cards_per: number of cards per hand (rules say 7)
         """
         for player in players:
             for card_per in range(cards_per):
