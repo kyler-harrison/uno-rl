@@ -1,3 +1,4 @@
+import random
 from game import Game
 from opponent import Opponent
 from agent import Agent
@@ -30,29 +31,33 @@ def check_card(card, game_obj, player_obj):
 
 
 def main():
-    # TODO 
-    # init dqn
+    # TODO init dqn
 
     num_games = int(1e4)  # number of full games to simulate (guessing agent will get at least 10 plays each, so num_games*10 is num train iters)
+    cards_per_hand = 7
+
+    # TODO make this stuff properties of agent 
     cache_limit = num_games // 10  # max number of previous states to remember, if train iterations = 1e6, this takes about 50 MB
     discount_factor = 0.999  # something about a horizon and when to expect reward, can be tweaked
-    explore_prob = 1  # decreases throughout training
-    explore_final_prob = 0.05  # where to stop decreasing explore prob
-    explore_anneal = (1 - explore_final_prob) / num_games  # amount to decrease explore_prob on each train pass
-    cards_per_hand = 7
+    epsilon = 1  # decreases throughout training
+    epsilon_final = 0.05  # where to stop decreasing explore prob
+    anneal = (1 - epsilon_final) / num_games  # amount to decrease epsilon on each train pass
 
     # training/num_games loop
     for i in range(num_games):
         g = Game()
-        opp = Opponent()
-        ag = Agent(g.num_unique_cards)
+        opp = Opponent(g.card_dict)
+        ag = Agent(g.num_unique_cards, g.card_dict, cache_limit, discount_factor, epsilon, epsilon_final, anneal)
 
         # deal cards to players and flip first card
         g.deal([opp, ag], cards_per_hand)
         g.handle_play(g.draw())
 
+        # finish init of agent's state
+        ag.state[-1] = g.play_deck[-1]
+
         # ignore first card if wild
-        while g.play_deck[-1] == "wild" or g.play_deck[-1] == "wild_draw_4":
+        while g.play_deck[-1][1] == "wild" or g.play_deck[-1][1] == "wild_draw_4":
             g.handle_play(g.draw())
 
         # opp decides card
@@ -67,11 +72,11 @@ def main():
         if opp_card != None:
             g.handle_play(opp_card)
 
-        not_game_over = True
+        game_over = False
         can_play = True
 
         # main loop of single game
-        while not_game_over:
+        while not game_over:
             # check for special conditions to see if agent can play
             if opp_card != None:
                 can_play = check_card(opp_card, g, ag)
@@ -79,8 +84,63 @@ def main():
                 can_play = True
 
             if can_play:
-                #ag.state[]
-                pass
+                agent_valid = ag.has_valid(g.play_deck[-1])
+
+                if not agent_valid:
+                    ag.add_card(g.draw())
+                    agent_valid = ag.has_valid(g.play_deck[-1], after_draw=True)
+                
+                # agent has playable card, will update dqn and put state in cache
+                if agent_valid:
+                    ag.state[-1] = g.play_deck[-1]  # state now has counts of cards in agent's hand and top card on play deck
+
+                    # TODO pass state through dqn, obtain real output
+                    dqn_out = [0.1, 0.2, 0.3]
+                    agent_card, expected_q = ag.decide_card(dqn_out, g.play_deck[-1])
+
+                else:
+                    agent_card = None
+
+            else:
+                agent_card = None
+
+            if agent_card != None:
+                g.handle_play(agent_card)
+                ag.remove_card(agent_card)
+
+                if len(ag.cards) == 0:
+                    reward = 1
+                    game_over = True
+
+                # check for special conditions to see if opp can play
+                if not game_over:
+                    can_play = check_card(agent_card, g, opp)
+            else:
+                can_play = True
+
+            if not game_over and can_play:
+                # opp decides card
+                opp_card = opp.decide_card(g.play_deck[-1])
+
+                # opp draws card if no valid cards the first decision
+                if opp_card == None:
+                    opp.add_card(g.draw())
+                    opp_card = opp.decide_card(g.play_deck[-1], after_draw=True)
+
+                # opp plays card 
+                if opp_card != None:
+                    g.handle_play(opp_card)
+
+                if len(opp.cards) == 0:
+                    reward = -1
+                    game_over = False
+                else:
+                    reward = 0
+
+            if agent_card != None:  # only put in cache if the agent was able to play 
+                ag.update_cache(expected_q, reward)
+                # TODO rando choose cache tuple and do full pass through dqn
+
             break
         break
 
@@ -95,8 +155,8 @@ init DQN (input dims = state vector dims, output dims = action space vector dims
 cache_limit = some number that cache size will not exceed
 cache = []
 discount_factor = value from 0 to 1 (0 means chase immediate reward, 1 means sum of future rewards)
-explore_prob = 1  # epsilon, annealed over time to 0.1/0.05 where it remains fixed
-explore_anneal = something like (1 - final_prob) / (0.1 * total_train_update_iterations)
+epsilon = 1  # epsilon, annealed over time to 0.1/0.05 where it remains fixed
+anneal = something like (1 - final_prob) / (0.1 * total_train_update_iterations)
 
 train loop:
     # may not be appropriate to call this train loop
@@ -177,6 +237,6 @@ train loop:
             loss = MSE(update_pair)
             update nn params using SGD or Adam
 
-            explore_prob -= explore_anneal
+            epsilon -= anneal
 
 """
