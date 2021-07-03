@@ -1,3 +1,5 @@
+from player import Player
+
 class Agent(Player):
 
     def __init__(self, num_cards):
@@ -18,24 +20,35 @@ class Agent(Player):
         # [play_red_0, play_red_1, ..., play_blue_reverse, play_wild_red, play_wild_yellow, ..., play_wild_draw_4_blue]
         # each neuron/action idx corresponds to same card idx defined in game
 
-    def agent_add(self, card):
+    def add_card(self, card):
         """
         add card to hand and update count in state
         card: card tuple
         """
-        self.add_card(card)
-        self.state[card[0]] += 1
+        self.cards.append(card)
 
-    def agent_remove(self, card):
+        # if wild, increment each wild color in state correspondingly
+        if card[0] == 58:
+            for i in range(4):
+                self.state[-1 - (1 + i)] += 1
+        elif card[0] == 57:
+            for i in range(4):
+                self.state[-1 - (5 + i)] += 1
+        else:
+            self.state[card[0]] += 1
+
+    def remove_card(self, card):
         """
         remove card from hand and update count in state
         card: card tuple
         """
-        self.remove_card(card)
+        del self.cards[self.cards.index(card)]
         self.state[card[0]] -= 1
 
-    def decision(self):
+    def decision(self, dqn_out):
         """
-        im getting to it
+        decide which card to play based on dqn
         """
+        # if card is wild, need to find the wild/wild_draw_4 in hand and rm (because it will still be unassigned whereas the net will give an assigned)
+        # so like if max valid from nn is idx 53, rm (1, "wild_draw_4", None) from hand instead of (53, "wild_draw_4", "yellow")
         pass
