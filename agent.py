@@ -40,15 +40,23 @@ class Agent(Player):
     def remove_card(self, card):
         """
         remove card from hand and update count in state
-        card: card tuple
+        card: card tuple (if wild it will have a color assigned - decision returns this for the play deck)
         """
-        del self.cards[self.cards.index(card)]
-        self.state[card[0]] -= 1
+        # handle wild card with assigned color
+        if 53 <= card[0] <= 56:
+            for i in range(4):
+                self.state[-1 - (1 + i)] -= 1
+            del self.cards[self.cards.index((1, "wild_draw_4", None))]
+        elif 49 <= card[0] <= 52:
+            for i in range(4):
+                self.state[-1 - (5 + i)] -= 1
+            del self.cards[self.cards.index((0, "wild_draw", None))]
+        else:
+            self.state[card[0]] -= 1
+            del self.cards[self.cards.index(card)]
 
     def decision(self, dqn_out):
         """
         decide which card to play based on dqn
         """
-        # if card is wild, need to find the wild/wild_draw_4 in hand and rm (because it will still be unassigned whereas the net will give an assigned)
-        # so like if max valid from nn is idx 53, rm (1, "wild_draw_4", None) from hand instead of (53, "wild_draw_4", "yellow")
         pass
