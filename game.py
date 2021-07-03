@@ -6,6 +6,9 @@ class Game:
         # deck of cards that is shuffled and removed from 
         self.deck = []  
 
+        # index to card mapping
+        self.card_dict = {}
+
         # deck of all cards that are played throughout all shuffles
         if not reshuffle: 
             self.play_deck = []  
@@ -54,13 +57,12 @@ class Game:
 
         self.cards_remain = len(self.deck)  # countdown when a card is drawn, reshuffle new deck when 0
 
-        # used to define a wild card index once Opponent has decided on color 
+        # add wild cards (that are not explicitly defined in deck) to cards mapping
         wild_set = [("wild", "red"), ("wild", "yellow"), ("wild", "green"), ("wild", "blue")]
         wild_set += [(f"{elem[0]}_draw_4", elem[1]) for elem in wild_set]
-        self.wild_dict = {}
         for wild_tuple in wild_set:
             uni_idx += 1
-            self.wild_dict[wild_tuple] = uni_idx
+            self.card_dict[uni_idx] = wild_tuple
         uni_idx += 1
 
         # wild cards
@@ -72,6 +74,10 @@ class Game:
 
         # number of playable cards (can have multiple of each)
         self.num_unique_cards = uni_idx - 2  # unassigned wilds (last two indexes) are only placeholders
+
+        # add rest of cards mapping
+        for card in self.deck:
+            self.card_dict[card[0]] = (card[1], card[2])
 
         random.shuffle(self.deck)  # shuffle deck
 
