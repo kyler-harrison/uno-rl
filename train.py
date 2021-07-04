@@ -33,10 +33,9 @@ def check_card(card, game_obj, player_obj):
 def main():
     # TODO init dqn
 
-    num_games = int(1e4)  # number of full games to simulate (guessing agent will get at least 10 plays each, so num_games*10 is num train iters)
+    num_games = int(1e4)  # number of full games to simulate (guessing agent will get at least 10 plays each, so num_games*10 is ~train_iters)
     cards_per_hand = 7
 
-    # TODO make this stuff properties of agent 
     cache_limit = num_games // 10  # max number of previous states to remember, if train iterations = 1e6, this takes about 50 MB
     discount_factor = 0.999  # something about a horizon and when to expect reward, can be tweaked
     epsilon = 1  # decreases throughout training
@@ -53,17 +52,17 @@ def main():
         g.deal([opp, ag], cards_per_hand)
         g.handle_play(g.draw())
 
-        # finish init of agent's state
-        ag.state[-1] = g.play_deck[-1]
-
         # ignore first card if wild
         while g.play_deck[-1][1] == "wild" or g.play_deck[-1][1] == "wild_draw_4":
             g.handle_play(g.draw())
 
+        # finish init of agent's state
+        ag.state[-1] = g.play_deck[-1]
+
         # opp decides card
         opp_card = opp.decide_card(g.play_deck[-1])
 
-        # opp draws card if no valid cards the first decision
+        # opp draws card if no valid cards found 
         if opp_card == None:
             opp.add_card(g.draw())
             opp_card = opp.decide_card(g.play_deck[-1], after_draw=True)
@@ -115,6 +114,7 @@ def main():
                 # check for special conditions to see if opp can play
                 if not game_over:
                     can_play = check_card(agent_card, g, opp)
+
             else:
                 can_play = True
 
@@ -131,11 +131,11 @@ def main():
                 if opp_card != None:
                     g.handle_play(opp_card)
 
-                if len(opp.cards) == 0:
-                    reward = -1
-                    game_over = False
-                else:
-                    reward = 0
+                    if len(opp.cards) == 0:
+                        reward = -1
+                        game_over = False
+                    else:
+                        reward = 0
 
             if agent_card != None:  # only put in cache if the agent was able to play 
                 ag.update_cache(expected_q, reward)
