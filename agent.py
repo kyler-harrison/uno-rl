@@ -58,11 +58,11 @@ class Agent(Player):
         if card[1] == "wild_draw_4":
             for i in range(4):
                 self.state[-1 - (1 + i)] -= 1
-            del self.cards[self.cards.index((1, "wild_draw_4", None))]
+            del self.cards[self.cards.index((58, "wild_draw_4", None))]  # TODO HARDCODE
         elif card[1] == "wild":
             for i in range(4):
                 self.state[-1 - (5 + i)] -= 1
-            del self.cards[self.cards.index((0, "wild", None))]
+            del self.cards[self.cards.index((57, "wild", None))]  # TODO HARDCODE
         else:
             self.state[card[0]] -= 1
             del self.cards[self.cards.index(card)]
@@ -81,15 +81,15 @@ class Agent(Player):
 
         # i hate wild cards - this could have been a nice one-liner
         for hand_idx in hand_indexes:
-            # i dont like all of this wild card hardcoding, but i guess it's fine considering it wont ever change
+            # TODO HARDCODING stupid wild cards ruining consistency across scripts
             if hand_idx == 57:
                 for i in range(49, 53):
-                    dqn_valid.append(dqn_out[i])
+                    dqn_valid.append((hand_idx, dqn_out[i]))
             elif hand_idx == 58:
                 for i in range(53, 57):
-                    dqn_valid.append(dqn_out[i])
+                    dqn_valid.append((hand_idx, dqn_out[i]))
             else:
-                dqn_valid.append(dqn_out[hand_idx])
+                dqn_valid.append((hand_idx, dqn_out[hand_idx]))
 
         if len(dqn_valid) > 0:  # this should always be true
             dqn_valid.sort(reverse=True)  # sort max to min predicted q value
@@ -98,13 +98,13 @@ class Agent(Player):
             if explore_prob <= self.epsilon:
                 # explore
                 action = random.choice(dqn_valid)
-                action_card_idx = action[0] 
-                expected_q = action[1]
+                action_card_idx = action[0]
+                expected_q = action[1].item()  # to get scalar from pytorch tensor
             else:
                 # exploit
                 action = dqn_valid[0]
                 action_card_idx = action[0]
-                expected_q = action[1]
+                expected_q = action[1].item()
 
             # get face value and color of card
             action_tuple = self.card_dict[action_card_idx]
@@ -113,7 +113,6 @@ class Agent(Player):
             return (action_card_idx, action_tuple[0], action_tuple[1]), expected_q
 
         else:
-            print("no dice")
             return None, None  # i dont think this should ever happen, but idk might be an edge case somewhere
 
     def update_cache(self, expected_reward, reward_vector):
