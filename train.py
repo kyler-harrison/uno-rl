@@ -1,7 +1,9 @@
 import random
+import torch
 from game import Game
 from opponent import Opponent
 from agent import Agent
+from dqn import DQN
 
 
 def check_card(card, game_obj, player_obj):
@@ -31,8 +33,6 @@ def check_card(card, game_obj, player_obj):
 
 
 def main():
-    # TODO init dqn
-
     num_games = int(1e4)  # number of full games to simulate (guessing agent will get at least 10 plays each, so num_games*10 is ~train_iters)
     cards_per_hand = 7
 
@@ -41,6 +41,13 @@ def main():
     epsilon = 1  # decreases throughout training
     epsilon_final = 0.05  # where to stop decreasing explore prob
     anneal = (1 - epsilon_final) / num_games  # amount to decrease epsilon on each train pass
+
+    # TODO these are defined in Agent and Game but i need to reorganize, so just hardcoded atm
+    state_size = 57  # 56 playable cards + 1 card on top of play deck
+    action_size = 56  # 56 playable cards
+
+    # init deep q network (it's just a simple feedforward bro)
+    dqn = DQN(state_size, action_size)
 
     # training/num_games loop
     for i in range(num_games):
@@ -57,7 +64,7 @@ def main():
             g.handle_play(g.draw())
 
         # finish init of agent's state
-        ag.state[-1] = g.play_deck[-1]
+        ag.state[-1] = g.play_deck[-1][0]
 
         # opp decides card
         opp_card = opp.decide_card(g.play_deck[-1])
@@ -91,11 +98,12 @@ def main():
                 
                 # agent has playable card, will update dqn and put state in cache
                 if agent_valid:
-                    ag.state[-1] = g.play_deck[-1]  # state now has counts of cards in agent's hand and top card on play deck
+                    ag.state[-1] = g.play_deck[-1][0]  # state now has counts of cards in agent's hand and top card on play deck
 
-                    # TODO pass state through dqn, obtain real output
-                    dqn_out = [0.1, 0.2, 0.3]
-                    agent_card, expected_q = ag.decide_card(dqn_out, g.play_deck[-1])
+                    # forward pass through network, outputs are the predicted q values
+                    dqn_out = dqn.forward(torch.tensor([float(num) for num in ag.state]))  
+
+                    agent_card, expected_q = ag.decide_card(g.play_deck[-1], dqn_out)  # TODO expected_q not used but maybe will for output
 
                 else:
                     agent_card = None
@@ -109,6 +117,8 @@ def main():
 
                 if len(ag.cards) == 0:
                     reward = 1
+                    reward_vector = [0] * action_size  # TODO probs dont need to assign this each time but im 2 tired to make do better
+                    reward_vector[agent_card[0]] = reward
                     game_over = True
 
                 # check for special conditions to see if opp can play
@@ -132,13 +142,21 @@ def main():
                     g.handle_play(opp_card)
 
                     if len(opp.cards) == 0:
-                        reward = -1
                         game_over = False
-                    else:
-                        reward = 0
+
+                    if agent_card != None:
+                        if game_over:
+                            reward = -1
+                            reward_vector = [0] * action_size
+                            reward_vector[agent_card[0]] = reward
+
+                        else:
+                            reward = 0
+                            reward_vector = [0] * action_size
+                            reward_vector[agent_card[0]] = reward
 
             if agent_card != None:  # only put in cache if the agent was able to play 
-                ag.update_cache(expected_q, reward)
+                ag.update_cache(dqn_out, torch.tensor(reward_vector))
                 # TODO rando choose cache tuple and do full pass through dqn
 
             break
