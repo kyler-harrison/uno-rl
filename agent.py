@@ -95,7 +95,7 @@ class Agent(Player):
             dqn_valid.sort(reverse=True)  # sort max to min predicted q value
             explore_prob = random.random()
 
-            if explore_prob <= epsilon:
+            if explore_prob <= self.epsilon:
                 # explore
                 action = random.choice(dqn_valid)
                 action_card_idx = action[0] 
