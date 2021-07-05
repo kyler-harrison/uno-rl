@@ -71,14 +71,15 @@ class Agent(Player):
         """
         decide which card to play based on dqn, returns card tuple
         top_card: top card on play deck
-        dqn_out: output vector from deep q network
+        dqn_out: output tensor from deep q network
         """
         # first get only cards in agent's hand
         hand_indexes = [card[0] for card in self.cards]
-        dqn_valid = [(card_idx, q_val) for card_idx, q_val in enumerate(dqn_out) if card_idx in hand_indexes]
+        # cant make the third dim bc None conflicts with wild cards so whatever
+        dqn_valid = [(card_idx, q_val, "POOP") for card_idx, q_val in enumerate(dqn_out) if card_idx in hand_indexes]
 
         # valid cards by game rules
-        dqn_valid = [card_tuple for card_tuple in dqn_valid if self.is_valid(card_tuple, top_card)]
+        dqn_valid = [cq_tuple for cq_tuple in dqn_valid if self.is_valid(cq_tuple, top_card)]
 
         if len(dqn_valid) > 0:  # this should always be true
             dqn_valid.sort(key=lambda x: x[1], reverse=True)  # sort max to min predicted q value
@@ -98,18 +99,19 @@ class Agent(Player):
             # get face value and color of card
             action_tuple = self.card_dict[action_card_idx]
 
+            # TODO will i actually need expected_q anywhere?
             return (action_card_idx, action_tuple[0], action_tuple[1]), expected_q
 
         else:
             return None, None  # i dont think this should ever happen, but idk might be an edge case somewhere
 
-    def update_cache(self, expected_reward, reward):
+    def update_cache(self, expected_reward, reward_vector):
         """
-        update agent's state cache (current state will correspond to most recent reward)
+        update agent's state cache (contains tuple of two vectors: network output, actual reward)
         expected_reward: dqn output value (predicted q) for selected action 
-        reward: actual reward for taking action
+        reward_vector: actual reward for taking action (in vector form, i.e. one hot where reward is in correct card idx)
         """
-        self.cache.insert(0, (self.state, expected_reward, reward))
+        self.cache.insert(0, (expected_reward, reward_vector))
 
         if len(self.cache) > self.cache_limit:
             self.cache.pop()
