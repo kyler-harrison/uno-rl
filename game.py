@@ -73,7 +73,7 @@ class Game:
         self.deck += [(uni_idx, "wild_draw_4", None) for _ in range(uni_idx, uni_idx + num_wild_draw_4)]  
 
         # number of playable cards (can have multiple of each)
-        self.num_unique_cards = uni_idx - 2  # unassigned wilds (last two indexes) are only placeholders
+        self.num_unique_cards = uni_idx - 1  # unassigned wilds (last two indexes) are only placeholders, idx started at 0
 
         # add rest of cards mapping
         for card in self.deck:
