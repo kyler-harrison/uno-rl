@@ -43,8 +43,8 @@ def main():
     anneal = (1 - epsilon_final) / num_games  # amount to decrease epsilon on each train pass
 
     # TODO these are defined in Agent and Game but i need to reorganize, so just hardcoded atm
-    state_size = 57  # 56 playable cards + 1 card on top of play deck
-    action_size = 56  # 56 playable cards
+    state_size = 58  # 57 playable cards + 1 card on top of play deck
+    action_size = 57  # 57 playable cards
 
     # init deep q network (it's just a simple feedforward bro)
     dqn = DQN(state_size, action_size)
@@ -103,7 +103,11 @@ def main():
                     # forward pass through network, outputs are the predicted q values
                     dqn_out = dqn.forward(torch.tensor([float(num) for num in ag.state]))  
 
-                    agent_card, expected_q = ag.decide_card(g.play_deck[-1], dqn_out)  # TODO expected_q not used but maybe will for output
+                    print("playing")
+                    agent_card, ag_hand_card = ag.decide_card(g.play_deck[-1], dqn_out)  # TODO expected_q not used but maybe will for output
+                    print(f"agent hand = {ag.cards}")
+                    print(f"agent_card = {agent_card}")
+                    print(f"ag_hand_card = {ag_hand_card}")
 
                 else:
                     agent_card = None
@@ -113,11 +117,11 @@ def main():
 
             if agent_card != None:
                 g.handle_play(agent_card)
-                ag.remove_card(agent_card)
+                ag.remove_card(ag_hand_card)
 
                 if len(ag.cards) == 0:
-                    reward = 1
-                    reward_vector = [0] * action_size  # TODO probs dont need to assign this each time but im 2 tired to make do better
+                    reward = 1.0
+                    reward_vector = [0.0] * action_size  # TODO probs dont need to assign this each time but im 2 tired to make do better
                     reward_vector[agent_card[0]] = reward
                     game_over = True
 
@@ -142,22 +146,32 @@ def main():
                     g.handle_play(opp_card)
 
                     if len(opp.cards) == 0:
-                        game_over = False
+                        game_over = True
 
-                    if agent_card != None:
-                        if game_over:
-                            reward = -1
-                            reward_vector = [0] * action_size
-                            reward_vector[agent_card[0]] = reward
+            if agent_card != None:  
+                if game_over:
+                    reward = -1.0
+                    reward_vector = [0.0] * action_size
+                    reward_vector[agent_card[0]] = reward
 
-                        else:
-                            reward = 0
-                            reward_vector = [0] * action_size
-                            reward_vector[agent_card[0]] = reward
+                else:
+                    reward = 0.0
+                    reward_vector = [0.0] * action_size
+                    reward_vector[agent_card[0]] = reward
 
-            if agent_card != None:  # only put in cache if the agent was able to play 
+                # only updating cache if agent was able to play 
                 ag.update_cache(dqn_out, torch.tensor(reward_vector))
-                # TODO rando choose cache tuple and do full pass through dqn
+
+                # choose output/reward from agent's history (avoiding correlated states)
+                cache_updater = random.choice(ag.cache)
+                print(ag.cache)
+                print(cache_updater)
+                cache_expected = cache_updater[0]
+                cache_real = cache_updater[1]
+
+                dqn.compute_loss(cache_expected, cache_real)
+                print(f"loss = {dqn.loss}")
+                dqn.update_params()
 
             break
         break
