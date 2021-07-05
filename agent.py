@@ -22,7 +22,7 @@ class Agent(Player):
         # NOT including entire play deck yet, last idx will be top card on play deck
         self.state = [0] * (num_cards + 1)
         self.cache_limit = cache_limit
-        self.cache = [0] * self.cache_limit  # insert() and pop() later
+        self.cache = []  # insert() and pop() later
         self.discount_factor = discount_factor
         self.epsilon = epsilon
         self.epsilon_final = epsilon_final
@@ -84,12 +84,12 @@ class Agent(Player):
             # TODO HARDCODING stupid wild cards ruining consistency across scripts
             if hand_idx == 57:
                 for i in range(49, 53):
-                    dqn_valid.append((hand_idx, dqn_out[i]))
+                    dqn_valid.append((i, hand_idx, dqn_out[i]))
             elif hand_idx == 58:
                 for i in range(53, 57):
-                    dqn_valid.append((hand_idx, dqn_out[i]))
+                    dqn_valid.append((i, hand_idx, dqn_out[i]))
             else:
-                dqn_valid.append((hand_idx, dqn_out[hand_idx]))
+                dqn_valid.append((hand_idx, hand_idx, dqn_out[hand_idx]))
 
         if len(dqn_valid) > 0:  # this should always be true
             dqn_valid.sort(reverse=True)  # sort max to min predicted q value
@@ -99,18 +99,18 @@ class Agent(Player):
                 # explore
                 action = random.choice(dqn_valid)
                 action_card_idx = action[0]
-                expected_q = action[1].item()  # to get scalar from pytorch tensor
+                hand_card_idx = action[1]
             else:
                 # exploit
                 action = dqn_valid[0]
                 action_card_idx = action[0]
-                expected_q = action[1].item()
+                hand_card_idx = action[1]
 
             # get face value and color of card
             action_tuple = self.card_dict[action_card_idx]
+            hand_tuple = self.card_dict[hand_card_idx]
 
-            # TODO do i actually need expected_q anywhere?
-            return (action_card_idx, action_tuple[0], action_tuple[1]), expected_q
+            return (action_card_idx, action_tuple[0], action_tuple[1]), (hand_card_idx, hand_tuple[0], hand_tuple[1])
 
         else:
             return None, None  # i dont think this should ever happen, but idk might be an edge case somewhere
