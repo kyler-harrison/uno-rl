@@ -74,15 +74,25 @@ class Agent(Player):
         dqn_out: output tensor from deep q network
         """
         # first get only cards in agent's hand
-        hand_indexes = [card[0] for card in self.cards]
-        # cant make the third dim bc None conflicts with wild cards so whatever
-        dqn_valid = [(card_idx, q_val, "POOP") for card_idx, q_val in enumerate(dqn_out) if card_idx in hand_indexes]
+        hand_indexes = [card[0] for card in self.cards if self.is_valid(card, top_card)]
 
-        # valid cards by game rules
-        dqn_valid = [cq_tuple for cq_tuple in dqn_valid if self.is_valid(cq_tuple, top_card)]
+        # take indexes of dqn that are in hand and valid by game rules
+        dqn_valid = []
+
+        # i hate wild cards - this could have been a nice one-liner
+        for hand_idx in hand_indexes:
+            # i dont like all of this wild card hardcoding, but i guess it's fine considering it wont ever change
+            if hand_idx == 57:
+                for i in range(49, 53):
+                    dqn_valid.append(dqn_out[i])
+            elif hand_idx == 58:
+                for i in range(53, 57):
+                    dqn_valid.append(dqn_out[i])
+            else:
+                dqn_valid.append(dqn_out[hand_idx])
 
         if len(dqn_valid) > 0:  # this should always be true
-            dqn_valid.sort(key=lambda x: x[1], reverse=True)  # sort max to min predicted q value
+            dqn_valid.sort(reverse=True)  # sort max to min predicted q value
             explore_prob = random.random()
 
             if explore_prob <= epsilon:
@@ -99,17 +109,18 @@ class Agent(Player):
             # get face value and color of card
             action_tuple = self.card_dict[action_card_idx]
 
-            # TODO will i actually need expected_q anywhere?
+            # TODO do i actually need expected_q anywhere?
             return (action_card_idx, action_tuple[0], action_tuple[1]), expected_q
 
         else:
+            print("no dice")
             return None, None  # i dont think this should ever happen, but idk might be an edge case somewhere
 
     def update_cache(self, expected_reward, reward_vector):
         """
         update agent's state cache (contains tuple of two vectors: network output, actual reward)
-        expected_reward: dqn output value (predicted q) for selected action 
-        reward_vector: actual reward for taking action (in vector form, i.e. one hot where reward is in correct card idx)
+        expected_reward: dqn output tensor (predicted q) for selected action 
+        reward_vector: actual reward for taking action (in tensor form, i.e. one hot where reward is in correct card idx)
         """
         self.cache.insert(0, (expected_reward, reward_vector))
 
