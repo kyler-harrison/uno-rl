@@ -113,37 +113,38 @@ class Opponent(Player):
             return match 
 
         # check for wild cards
-        # and change the color in the wild card from None to the max color
-        # index corresponding to wild color in agent's action space should be returned in this tuple
 
-        # TODO redundant, this could be a single function
+        selected_wild4 = self.__select_wild("wild_draw_4")
 
-        for card in self.cards:
-            if card[1] == "wild_draw_4":
-                max_color = self.__pick_color()
+        if selected_wild4 != None:
+            return selected_wild4
 
-                # this shouldn't happen
-                if max_color == None:
-                    return None
+        selected_wild = self.__select_wild("wild")
 
-                self.remove_card(card)
-                return (self.wild_dict[(card[1], max_color)], card[1], max_color)
-
-        for card in self.cards:
-            if card[1] == "wild":
-                max_color = self.__pick_color()
-
-                # this shouldn't happen
-                if max_color == None:
-                    return None
-
-                self.remove_card(card)
-                return (self.wild_dict[(card[1], max_color)], card[1], max_color)
+        if selected_wild != None:
+            return selected_wild
 
         # no valid card found
         return None
+    
+    def __select_wild(self, wild_type):
+        """ selects wild card with assigned color """
+
+        for card in self.cards:
+            if card[1] == wild_type:
+                max_color = self.__pick_color()
+
+                # this shouldn't happen
+                if max_color == None:
+                    return None
+
+                self.remove_card(card)
+                return (self.wild_dict[(card[1], max_color)], card[1], max_color)
+
 
     def __pick_color(self):
+        """ selects max occurring color (used for selection of wild card) """
+
         color_counts = dict.fromkeys(["red", "blue", "green", "yellow"], 0)
 
         # count each color
