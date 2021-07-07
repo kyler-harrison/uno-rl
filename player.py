@@ -7,6 +7,27 @@ class Player:
         self.cards = []
         self.card_dict = card_dict
 
+        # TODO
+        asg_wild_indexes = []
+        asg_wild4_indexes = []
+
+        for card_idx, card_vals in self.card_dict.items():
+            if card_vals == ("wild", None):
+                self.hand_wild_idx = card_idx
+            elif card_vals == ("wild_draw_4", None):
+                self.hand_wild4_idx = card_idx
+            elif card_vals[0] == "wild":
+                asg_wild_indexes.append(card_idx)
+            elif card_vals[0] == "wild_draw_4":
+                asg_wild4_indexes.append(card_idx)
+
+        asg_wild_indexes.sort()
+        asg_wild4_indexes.sort()
+        self.min_wild_idx = asg_wild_indexes[0]
+        self.max_wild_idx = asg_wild_indexes[-1]
+        self.min_wild4_idx = asg_wild4_indexes[0]
+        self.max_wild4_idx = asg_wild4_indexes[-1]
+
     def add_card(self, card):
         """
         called when a card is added to a players hand
