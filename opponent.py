@@ -18,7 +18,7 @@ class Opponent(Player):
             # drawn card will be the most recently appended (as long as gameplay defined this way)
             card = self.cards[-1]  
 
-            if card[2] == top_card[2] and top_card[2] != None:
+            if card[2] == top_card[2] and top_card[2] != None:  # i dont think this None check is necessary given that wild will have color assigned
                 # color
                 self.remove_card(card)
                 return card
@@ -26,11 +26,11 @@ class Opponent(Player):
                 # suit
                 self.remove_card(card)
                 return card
-            elif card[1] == top_card[1] and top_card[1] == "wild_draw_4":
+            elif card[1] == "wild_draw_4":
                 # wild draw 4
                 self.remove_card(card)
                 return card
-            elif card[1] == top_card[1] and top_card[1] == "wild":
+            elif card[1] == "wild":
                 # wild
                 self.remove_card(card)
                 return card
