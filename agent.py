@@ -20,7 +20,7 @@ class Agent(Player):
         # each neuron/action idx corresponds to same card idx defined in game
 
         # NOT including entire play deck yet, last idx will be top card on play deck
-        self.state = [0] * num_cards 
+        self.state = [0] * (num_cards + 1)  # plus 1 bc including top card on play deck in state
         self.cache_limit = cache_limit
         self.cache = []  # insert() and pop() later
         self.discount_factor = discount_factor
@@ -80,12 +80,11 @@ class Agent(Player):
 
         # i hate wild cards - this could have been a nice one-liner
         for hand_idx in hand_indexes:
-            # TODO HARDCODING stupid wild cards ruining consistency across scripts
-            if hand_idx == 57:
-                for i in range(49, 53):
+            if hand_idx == self.hand_wild_idx:
+                for i in range(self.min_wild_idx, self.max_wild_idx + 1):
                     dqn_valid.append((i, hand_idx, dqn_out[i]))
-            elif hand_idx == 58:
-                for i in range(53, 57):
+            elif hand_idx == self.hand_wild4_idx:
+                for i in range(self.min_wild4_idx, self.max_wild4_idx + 1):
                     dqn_valid.append((i, hand_idx, dqn_out[i]))
             else:
                 dqn_valid.append((hand_idx, hand_idx, dqn_out[hand_idx]))
