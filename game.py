@@ -54,16 +54,17 @@ class Game:
 
             # skip
             self.deck += [(uni_idx, "skip", color) for _ in range(uni_idx, uni_idx + num_skip)]
+            uni_idx += 1
 
         self.cards_remain = len(self.deck)  # countdown when a card is drawn, reshuffle new deck when 0
 
         # add wild cards (that are not explicitly defined in deck) to cards mapping
         wild_set = [("wild", "red"), ("wild", "yellow"), ("wild", "green"), ("wild", "blue")]
         wild_set += [(f"{elem[0]}_draw_4", elem[1]) for elem in wild_set]
+        temp_uni_idx = uni_idx
         for wild_tuple in wild_set:
-            uni_idx += 1
-            self.card_dict[uni_idx] = wild_tuple
-        uni_idx += 1
+            self.card_dict[temp_uni_idx] = wild_tuple
+            temp_uni_idx += 1
 
         # wild cards
         self.deck += [(uni_idx, "wild", None) for _ in range(num_wild)]  
@@ -79,7 +80,7 @@ class Game:
         for card in self.deck:
             self.card_dict[card[0]] = (card[1], card[2])
 
-        random.shuffle(self.deck)  # shuffle deck
+        #random.shuffle(self.deck)  # shuffle deck
 
         # NOTE irl top to bottom of deck will be idx -1..0, so top card on deck is self.deck[-1]
         # doing it this way so that self.deck.pop() removes card tuple from deck and returns it
