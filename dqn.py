@@ -33,7 +33,7 @@ class DQN(nn.Module):
 
     def update_params(self):
         self.optimizer.zero_grad()
-        self.loss.backward()
+        self.loss.backward(retain_graph=True)  
         self.optimizer.step()
 
 
