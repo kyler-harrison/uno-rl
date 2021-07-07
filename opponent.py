@@ -5,12 +5,18 @@ class Opponent(Player):
     def __init__(self, card_dict):
         super().__init__(card_dict)
 
+        # reverse mapping for wilds in card dictionary (used in decide_card)
+        self.wild_dict = {}
+        for card_idx, value_tuple in self.card_dict.items():
+            if card_idx != self.hand_wild_idx and card_idx != self.hand_wild4_idx:
+                if value_tuple[0] == "wild" or value_tuple[0] == "wild_draw_4":
+                    self.wild_dict[value_tuple] = card_idx
+
     def decide_card(self, top_card, after_draw=False):
         """
         implements opponent strategy defined in what.txt, calls play_card()
         top_card: the top card on the play deck (defined in game.py)
         after_draw: if player has already searched and drew a card, true
-        wild_dict: mapping of ("wild", "color") to index in state (defined in game.py)
         """
 
         # after draw, know that only one match is possible, so whichever card matches first is the only option
@@ -22,18 +28,30 @@ class Opponent(Player):
                 # color
                 self.remove_card(card)
                 return card
+
             elif card[1] == top_card[1] and top_card[2] != None:
                 # suit
                 self.remove_card(card)
                 return card
+
             elif card[1] == "wild_draw_4":
-                # wild draw 4
+                max_color = self.__pick_color()
+
+                if max_color == None:
+                    return None
+
                 self.remove_card(card)
-                return card
+                return (self.wild_dict[(card[1], max_color)], card[1], max_color)
+
             elif card[1] == "wild":
-                # wild
+                max_color = self.__pick_color()
+
+                if max_color == None:
+                    return None
+
                 self.remove_card(card)
-                return card
+                return (self.wild_dict[(card[1], max_color)], card[1], max_color)
+
             else:
                 return None
 
@@ -98,13 +116,6 @@ class Opponent(Player):
         # and change the color in the wild card from None to the max color
         # index corresponding to wild color in agent's action space should be returned in this tuple
 
-        # reverse mapping for wild cards (used below)
-        wild_dict = {}  
-        for card_idx, value_tuple in self.card_dict.items():
-            if card_idx != 57 and card_idx != 58:
-                if value_tuple[0] == "wild" or value_tuple[0] == "wild_draw_4":
-                    wild_dict[value_tuple] = card_idx
-
         # TODO redundant, this could be a single function
 
         for card in self.cards:
@@ -116,7 +127,7 @@ class Opponent(Player):
                     return None
 
                 self.remove_card(card)
-                return (wild_dict[(card[1], max_color)], card[1], max_color)
+                return (self.wild_dict[(card[1], max_color)], card[1], max_color)
 
         for card in self.cards:
             if card[1] == "wild":
@@ -127,7 +138,7 @@ class Opponent(Player):
                     return None
 
                 self.remove_card(card)
-                return (wild_dict[(card[1], max_color)], card[1], max_color)
+                return (self.wild_dict[(card[1], max_color)], card[1], max_color)
 
         # no valid card found
         return None
