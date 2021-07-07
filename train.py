@@ -42,9 +42,11 @@ def main():
     epsilon_final = 0.05  # where to stop decreasing explore prob
     anneal = (1 - epsilon_final) / num_games  # amount to decrease epsilon on each train pass
 
-    # TODO these are defined in Agent and Game but i need to reorganize, so just hardcoded atm
-    state_size = 58  # 57 playable cards + 1 card on top of play deck
-    action_size = 57  # 57 playable cards
+    # TODO these are redefined in train loop below, should create reset functions or reorganize somehow 
+    g = Game()
+    ag = Agent(g.num_unique_cards, g.card_dict, cache_limit, discount_factor, epsilon, epsilon_final, anneal)
+    state_size = g.num_unique_cards + 1  # playable cards + 1 card on top of play deck
+    action_size = g.num_unique_cards  # playable cards
 
     # init deep q network (it's just a simple feedforward bro)
     dqn = DQN(state_size, action_size)
@@ -104,7 +106,7 @@ def main():
                     dqn_out = dqn.forward(torch.tensor([float(num) for num in ag.state]))  
 
                     print("playing")
-                    agent_card, ag_hand_card = ag.decide_card(g.play_deck[-1], dqn_out)  # TODO expected_q not used but maybe will for output
+                    agent_card, ag_hand_card = ag.decide_card(g.play_deck[-1], dqn_out)  
                     print(f"agent hand = {ag.cards}")
                     print(f"agent_card = {agent_card}")
                     print(f"ag_hand_card = {ag_hand_card}")
@@ -173,7 +175,6 @@ def main():
                 print(f"loss = {dqn.loss}")
                 dqn.update_params()
 
-            break
         break
 
 
