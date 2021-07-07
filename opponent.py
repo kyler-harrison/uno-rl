@@ -60,7 +60,7 @@ class Opponent(Player):
         color_matches = [] 
 
         for card in self.cards:
-            if card[2] == top_card[2] and top_card[2] != None:
+            if card[2] == top_card[2] and card[1] != "wild" and card[1] != "wild_draw_4":
                 color_match = True
                 color_matches.append(card)
 
@@ -68,19 +68,19 @@ class Opponent(Player):
             # first search for draw_2
             for i, match in enumerate(color_matches):
                 if match[1] == "draw_2":
-                    self.remove_card(card)
+                    self.remove_card(match)
                     return match
 
             # then search for skip/reverse 
             for i, match in enumerate(color_matches):
                 if match[1] == "skip" or match[1] == "reverse":
-                    self.remove_card(card)
+                    self.remove_card(match)
                     return match
 
-            # if no specials, pop will return a number card that matches the color
+            # check for any color match
             match = color_matches.pop()
-            self.remove_card(card)
-            return match 
+            self.remove_card(match)
+            return match
 
         # TODO make this a generic fun for the above and the below (redundant)
         # or just dont i mean who cares
@@ -98,18 +98,18 @@ class Opponent(Player):
             # first search for draw_2
             for i, match in enumerate(suit_matches):
                 if match[1] == "draw_2":
-                    self.remove_card(card)
+                    self.remove_card(match)
                     return match
 
             # then search for skip/reverse 
             for i, match in enumerate(suit_matches):
                 if match[1] == "skip" or match[1] == "reverse":
-                    self.remove_card(card)
+                    self.remove_card(match)
                     return match
 
             # if no specials, pop will return a number card that matches the
             match = suit_matches.pop()
-            self.remove_card(card)
+            self.remove_card(match)
             return match 
 
         # check for wild cards
