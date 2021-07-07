@@ -58,6 +58,14 @@ class Game:
 
         self.cards_remain = len(self.deck)  # countdown when a card is drawn, reshuffle new deck when 0
 
+        # add wild cards (that are not explicitly defined in deck) to cards mapping
+        wild_set = [("wild", "red"), ("wild", "yellow"), ("wild", "green"), ("wild", "blue")]
+        wild_set += [(f"{elem[0]}_draw_4", elem[1]) for elem in wild_set]
+
+        for wild_tuple in wild_set:
+            self.card_dict[uni_idx] = wild_tuple
+            uni_idx += 1
+
         # wild cards
         self.deck += [(uni_idx, "wild", None) for _ in range(num_wild)]  
         uni_idx += 1
@@ -71,14 +79,6 @@ class Game:
         # add cards to mapping
         for card in self.deck:
             self.card_dict[card[0]] = (card[1], card[2])
-
-        # add wild cards (that are not explicitly defined in deck) to cards mapping
-        wild_set = [("wild", "red"), ("wild", "yellow"), ("wild", "green"), ("wild", "blue")]
-        wild_set += [(f"{elem[0]}_draw_4", elem[1]) for elem in wild_set]
-        uni_idx += 1
-        for wild_tuple in wild_set:
-            self.card_dict[uni_idx] = wild_tuple
-            uni_idx += 1
 
         #random.shuffle(self.deck)  # shuffle deck
 
