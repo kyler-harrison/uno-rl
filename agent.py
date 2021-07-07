@@ -20,7 +20,7 @@ class Agent(Player):
         # each neuron/action idx corresponds to same card idx defined in game
 
         # NOT including entire play deck yet, last idx will be top card on play deck
-        self.state = [0] * (num_cards + 1)
+        self.state = [0] * num_cards 
         self.cache_limit = cache_limit
         self.cache = []  # insert() and pop() later
         self.discount_factor = discount_factor
@@ -40,12 +40,14 @@ class Agent(Player):
         self.cards.append(card)
 
         # if wild, increment each wild color in state correspondingly
-        if card[0] == 58:
-            for i in range(4):
-                self.state[-1 - (1 + i)] += 1
-        elif card[0] == 57:
-            for i in range(4):
-                self.state[-1 - (5 + i)] += 1
+        # NOTE state and action makes the assump that the last two indexes are the two None wild and wild draw 4 which are NOT included in agent at all
+        # this will cause an index error at some point somewhere if I've missed this assumption
+        if card[0] == self.hand_wild_idx:
+            for i in range(self.min_wild_idx, self.max_wild_idx + 1):
+                self.state[i] += 1
+        elif card[0] == self.hand_wild4_idx:
+            for i in range(self.min_wild4_idx, self.max_wild4_idx + 1):
+                self.state[i] += 1
         else:
             self.state[card[0]] += 1
 
@@ -55,17 +57,14 @@ class Agent(Player):
         card: card tuple (if wild it will have a color assigned - decision returns this for the play deck)
         """
         # handle wild card with assigned color
-        if card[1] == "wild_draw_4":
-            for i in range(4):
-                self.state[-1 - (1 + i)] -= 1
-            del self.cards[self.cards.index((58, "wild_draw_4", None))]  # TODO HARDCODE
-        elif card[1] == "wild":
-            for i in range(4):
-                self.state[-1 - (5 + i)] -= 1
-            del self.cards[self.cards.index((57, "wild", None))]  # TODO HARDCODE
-        else:
-            self.state[card[0]] -= 1
-            del self.cards[self.cards.index(card)]
+        if card[1] == "wild":
+            for i in range(self.min_wild_idx, self.max_wild_idx + 1):
+                self.state[i] -= 1
+            del self.cards[self.cards.index((self.hand_wild_idx, "wild", None))]  # rm unassigned wild that is in hand
+        elif card[1] == "wild_draw_4":
+            for i in range(self.min_wild4_idx, self.max_wild4_idx + 1):
+                self.state[i] -= 1
+            del self.cards[self.cards.index((self.hand_wild4_idx, "wild_draw_4", None))]  
 
     def decide_card(self, top_card, dqn_out):
         """
