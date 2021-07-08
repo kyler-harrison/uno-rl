@@ -65,6 +65,8 @@ class Agent(Player):
             for i in range(self.min_wild4_idx, self.max_wild4_idx + 1):
                 self.state[i] -= 1
             del self.cards[self.cards.index((self.hand_wild4_idx, "wild_draw_4", None))]  
+        else:
+            del self.cards[self.cards.index(card)]
 
     def decide_card(self, top_card, dqn_out):
         """
