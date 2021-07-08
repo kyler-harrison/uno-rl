@@ -80,7 +80,7 @@ class Game:
         for card in self.deck:
             self.card_dict[card[0]] = (card[1], card[2])
 
-        #random.shuffle(self.deck)  # shuffle deck
+        random.shuffle(self.deck)  # shuffle deck
 
         # NOTE irl top to bottom of deck will be idx -1..0, so top card on deck is self.deck[-1]
         # doing it this way so that self.deck.pop() removes card tuple from deck and returns it
