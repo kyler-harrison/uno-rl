@@ -24,7 +24,7 @@ class Opponent(Player):
             # drawn card will be the most recently appended (as long as gameplay defined this way)
             card = self.cards[-1]  
 
-            if card[2] == top_card[2] and top_card[2] != None:  # i dont think this None check is necessary given that wild will have color assigned
+            if card[2] == top_card[2] and top_card[2] != None:  
                 # color
                 self.remove_card(card)
                 return card
@@ -164,7 +164,7 @@ class Opponent(Player):
         # this happens if hand is all wilds or you only have one card
         if max_color == None:
             # just choosing red bc i dont want to import random
-            return "red" 
+            max_color = "red"
 
         return max_color
 
