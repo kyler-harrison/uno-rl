@@ -1,5 +1,7 @@
 import random
 import torch
+import statistics as stat
+import time
 from game import Game
 from opponent import Opponent
 from agent import Agent
@@ -33,8 +35,10 @@ def check_card(card, game_obj, player_obj):
 
 
 def main():
-    num_games = int(1e4)  # number of full games to simulate (guessing agent will get at least 10 plays each, so num_games*10 is ~train_iters)
+    start = time.time()
+    num_games = int(1e3)  # number of full games to simulate (guessing agent will get at least 10 plays each, so num_games*10 is ~train_iters)
     cards_per_hand = 7
+    kill_after = 200  # after running 1000 games, the mean number of plays (looks for each player) with an untrained agent was ~85-100
 
     cache_limit = num_games // 10  # max number of previous states to remember, if train iterations = 1e6, this takes about 50 MB
     discount_factor = 0.999  # something about a horizon and when to expect reward, can be tweaked
@@ -52,14 +56,16 @@ def main():
     # init deep q network (it's just a simple feedforward bro)
     dqn = DQN(state_size, action_size)
 
+    play_counts = []
+
     # training/num_games loop
     for i in range(num_games):
         g = Game()
         opp = Opponent(g.card_dict)
         ag = Agent(g.num_unique_cards, g.card_dict, cache_limit, discount_factor, epsilon, epsilon_final, anneal)
 
-        print("=======================================================================")
-        print(f"game #{i}")
+#        print("=======================================================================")
+#        print(f"game #{i}")
 
         # deal cards to players and flip first card
         g.deal([opp, ag], cards_per_hand)
@@ -69,35 +75,35 @@ def main():
         while g.play_deck[-1][1] == "wild" or g.play_deck[-1][1] == "wild_draw_4":
             g.handle_play(g.draw())
 
-        print(f"\nopp cards: {opp.cards}")
-        #print(f"agent cards: {ag.cards}")
-        print(f"top card: {g.play_deck[-1]}")
+#        print(f"agent cards: {ag.cards}")
+#        print(f"top card: {g.play_deck[-1]}")
 
         # finish init of agent's state
         ag.state[-1] = g.play_deck[-1][0]
-        #print(f"agent state: {ag.state}")
+#        print(f"agent state: {ag.state}")
 
         # opp decides card
         opp_card = opp.decide_card(g.play_deck[-1])
-        print(f"\nfirst opp decision: {opp_card}")
+#        #print(f"\nfirst opp decision: {opp_card}")
 
         # opp draws card if no valid cards found 
         if opp_card == None:
             opp.add_card(g.draw())
-            print(f"opp cards after draw: {opp.cards}")
+#            #print(f"opp cards after draw: {opp.cards}")
             opp_card = opp.decide_card(g.play_deck[-1], after_draw=True)
-            print(f"second opp decision: {opp_card}")
+#            #print(f"second opp decision: {opp_card}")
 
         # opp plays card 
         if opp_card != None:
             g.handle_play(opp_card)
-            print(f"opp cards: {opp.cards}")
-            print(f"opp plays {opp_card}")
-            #print(f"agent cards: {ag.cards}")
-            print(f"top card: {g.play_deck[-1]}")
+#            #print(f"opp cards: {opp.cards}")
+#            #print(f"opp plays {opp_card}")
+#            #print(f"agent cards: {ag.cards}")
+#            print(f"top card: {g.play_deck[-1]}")
 
         game_over = False
         can_play = True
+        play_count = 0  # used to ensure that game doesn't take a disproportionate amount of time
 
         # main loop of single game
         while not game_over:
@@ -107,105 +113,110 @@ def main():
             else:
                 can_play = True
 
-            #print(f"\ncan agent play? {can_play}")
+#            print(f"\ncan agent play? {can_play}")
+#            print(f"agent cards: {ag.cards}")
 
             if can_play:
                 agent_valid = ag.has_valid(g.play_deck[-1])
-                #print(f"first does agent have a valid card? {agent_valid}")
+#                print(f"first does agent have a valid card? {agent_valid}, checked against top card = {g.play_deck[-1]}")
 
                 if not agent_valid:
                     ag.add_card(g.draw())
                     agent_valid = ag.has_valid(g.play_deck[-1], after_draw=True)
-                    #print(f"second does agent have a valid card? {agent_valid}")
+#                    print(f"second does agent have a valid card? {agent_valid}, checked against top card = {g.play_deck[-1]} with after_draw=True")
 
-                #print(f"updated (maybe) agent cards: {ag.cards}")
                 
                 # agent has playable card, will update dqn and put state in cache
                 if agent_valid:
                     ag.state[-1] = g.play_deck[-1][0]  # state now has counts of cards in agent's hand and top card on play deck
-                    #print(f"agent state: {ag.state}")
+#                    print(f"agent state: {ag.state}")
 
                     # forward pass through network, outputs are the predicted q values
                     dqn_out = dqn.forward(torch.tensor([float(num) for num in ag.state]))  
-                    #print(f"dqn outputs:\n{dqn_out}")
+#                    print(f"dqn outputs:\n{dqn_out}")
 
                     agent_card, ag_hand_card = ag.decide_card(g.play_deck[-1], dqn_out)  
-                    #print(f"agent card decision (play card, hand card): {agent_card}, {ag_hand_card}")
+#                    print(f"agent card decision (play card, hand card): {agent_card}, {ag_hand_card}")
 
                 else:
                     agent_card = None
-                    #print(f"agent_card: {None}")
+#                    print(f"agent_card: {None}")
 
             else:
                 agent_card = None
-                #print(f"agent_card: {None}")
+#                print(f"agent_card: {None}")
 
             if agent_card != None:
                 g.handle_play(agent_card)
-                print(f"agent plays: {agent_card}")
-                print(f"top_card: {g.play_deck[-1]}")
+#                #print(f"agent plays: {agent_card}")
+#                print(f"top_card: {g.play_deck[-1]}")
                 ag.remove_card(ag_hand_card)
-                #print(f"\nupdated agent cards: {ag.cards}")
-                #print(f"top card: {g.play_deck[-1]}")
 
                 if len(ag.cards) == 0:
                     reward = 1.0
                     reward_vector = [0.0] * action_size  # TODO probs dont need to assign this each time but im 2 tired to make do better
                     reward_vector[agent_card[0]] = reward
                     game_over = True
-                    print("\nGAME OVER, agent wins")
-                    #print(f"reward vector: {reward_vector}")
+#                    print(f"reward vector: {reward_vector}")
+#                    print("\nGAME OVER, agent wins")
 
                 # check for special conditions to see if opp can play
                 if not game_over:
                     can_play = check_card(agent_card, g, opp)
-                    print(f"\ncan opp play? {can_play}")
+#                    print(f"\ncan opp play? {can_play}")
 
             else:
                 can_play = True
-                print(f"\ncan opp play? {can_play}")
+#                print(f"\ncan opp play? {can_play}")
 
             if not game_over and can_play:
                 # opp decides card
                 opp_card = opp.decide_card(g.play_deck[-1])
 
-                print(f"first opp decision: {opp_card}")
+#                #print(f"first opp decision: {opp_card}")
 
                 # opp draws card if no valid cards the first decision
                 if opp_card == None:
                     opp.add_card(g.draw())
-                    print(f"opp cards after draw: {opp.cards}")
+#                    #print(f"opp cards after draw: {opp.cards}")
                     opp_card = opp.decide_card(g.play_deck[-1], after_draw=True)
-                    print(f"second opp decision: {opp_card}")
+#                    #print(f"second opp decision: {opp_card}")
 
                 # opp plays card 
                 if opp_card != None:
                     g.handle_play(opp_card)
-                    print(f"opp cards: {opp.cards}")
-                    print(f"opp plays {opp_card}")
-                    #print(f"agent cards: {ag.cards}")
-                    print(f"top card: {g.play_deck[-1]}")
+#                    #print(f"opp cards: {opp.cards}")
+#                    #print(f"opp plays {opp_card}")
+#                    #print(f"agent cards: {ag.cards}")
+#                    print(f"top card: {g.play_deck[-1]}")
 
-                    if len(opp.cards) == 0:
+                    # only update network if the agent was able to play 
+                    if len(opp.cards) == 0 and agent_card != None:
                         game_over = True
-                        print(f"\nGAME OVER, opp wins")
+                        reward = -1.0
+                        reward_vector = [0.0] * action_size
+                        reward_vector[agent_card[0]] = reward
+#                        print(f"\nGAME OVER, opp wins")
 
-            if agent_card != None:  
-                if game_over:
+            play_count += 3  # opp has a look, agent has a look, opp has a look
+
+            if play_count > kill_after:
+                game_over = True
+
+                if agent_card != None:
                     reward = -1.0
                     reward_vector = [0.0] * action_size
                     reward_vector[agent_card[0]] = reward
-                    #print(f"reward vector: {reward_vector}")
 
-                else:
+            # only update network if the agent was able to play 
+            if agent_card != None:  
+                if not game_over:
                     reward = 0.0
                     reward_vector = [0.0] * action_size
                     reward_vector[agent_card[0]] = reward
-                    #print(f"reward vector: {reward_vector}")
 
-                # only updating cache if agent was able to play 
                 ag.update_cache(dqn_out, torch.tensor(reward_vector))
-                #print(f"\nagent cache:\n{ag.cache}")
+#                #print(f"\nagent cache:\n{ag.cache}")
 
                 # choose output/reward from agent's history (avoiding correlated states)
                 cache_updater = random.choice(ag.cache)
@@ -214,106 +225,17 @@ def main():
 
                 dqn.compute_loss(cache_expected, cache_real)
                 del ag.cache[ag.cache.index(cache_updater)]
-                print(f"\ndqn loss = {dqn.loss}\n")
+#                print(f"\ndqn loss = {dqn.loss}")
                 dqn.update_params()
         
-        print("=======================================================================")
+        play_counts.append(play_count)
+#        print("=======================================================================")
 
-        break
-
+    print(f"greatest plays = {max(play_counts)}")
+    end = time.time()
+    print(f"{end - start} sec for {num_games} games")
+       
 
 if __name__ == "__main__":
     main()
 
-"""
-PSEUDO 
-
-init DQN (input dims = state vector dims, output dims = action space vector dims)
-cache_limit = some number that cache size will not exceed
-cache = []
-discount_factor = value from 0 to 1 (0 means chase immediate reward, 1 means sum of future rewards)
-epsilon = 1  # epsilon, annealed over time to 0.1/0.05 where it remains fixed
-anneal = something like (1 - final_prob) / (0.1 * total_train_update_iterations)
-
-train loop:
-    # may not be appropriate to call this train loop
-    # nn params are updated after every play (inside game loop below)
-    # this is essentially the "how many games to simulate" loop
-    # which basically makes it the train loop
-
-    init Game
-    init Opp
-    init Agent
-
-    Game deals cards to Opp and Agent
-    card drawn from Game deck and moved into play deck
-
-    if Opp has valid card:
-        Opp plays card based on top card of play deck (for simplicity Opp always goes first)
-    else:
-        Opp draws card from game deck
-
-        if card drawn is valid: 
-            Opp plays card, opp_valid = True
-        else:
-            opp_valid = False
-
-    game loop:
-        if opp_valid = True:
-            check for special gameplay (i.e. skip, reverse, draw 2, wild draw 4) -> update Agent correspondingly
-            Agent state/hand/whatever_else is updated with Opp placed card
-
-        if Agent has valid card:
-            nn_out = Agent passes state through nn
-        else:
-            Agent draws card from game deck
-
-            if card drawn is valid:
-                agent_valid = True
-                nn_out = Agent passes state through nn
-            else:
-                agent_valid = False
-        
-        if agent_valid:
-            prob = rando choice 0 to 1
-            if prob <= explore prob:
-                action = card idx of rando valid choice from nn_out
-            else:
-                action = card idx of max valid choice from nn_out
-            expected_reward = nn_out[action]
-
-            Agent plays card idx action (update Game and Agent correspondingly)
-            if len(Agent.cards) == 0:
-                reward = 1 + discount_factor * max(nn_output)  # win
-                break loop
-
-            check for special gameplay
-
-        if Opp has valid card:
-            Opp plays card, opp_valid = True
-        else:
-            Opp draws
-
-            if card drawn valid:
-                Opp plays card, opp_valid = True
-            else:
-                opp_valid = False
-
-        if opp_valid and len(Opp.cards) == 0:
-            reward = -1 + discount_factor * max(nn_output)  # loss
-            break loop
-        
-        if agent_valid:
-            reward = 0 + discount_factor * max(nn_output)  # continuation of game
-
-            if len(cache) == cache_limit: 
-                cache.pop()
-            
-            cache.append((expected_reward, reward))
-            update_pair = rando expected_reward/reward pair from cache
-            loss = MSE(update_pair)
-            update nn params using SGD or Adam
-
-            epsilon -= anneal
-
-"""
