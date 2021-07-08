@@ -64,7 +64,8 @@ class Player:
             return self.is_valid(card, top_card)
         else:
             for card in self.cards:
-                return self.is_valid(card, top_card)
+                valid = self.is_valid(card, top_card)
+                if valid: return True
 
         return False
 
