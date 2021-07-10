@@ -3,14 +3,11 @@ from player import Player
 
 class Agent(Player):
 
-    def __init__(self, num_cards, card_dict, cache_limit, discount_factor, epsilon, epsilon_final, anneal):
+    def __init__(self, num_cards, card_dict, cache_limit, epsilon):
         """
         num_cards: number of playable cards, should be gameObj.num_unique_cards
         cache_limit: max size for memory cache (where previous (state, predicted_q_val, true_reward) are stored)
-        discount_factor: something about a horizon and duration for reward expectation (usually 0.95 to 0.999)
         epsilon: initial probability of choosing to explore over exploit
-        epsilon_final: final probability of choosing to explore over exploit
-        anneal: amount to decrease epsilon by after each pass through dqn
         """
         super().__init__(card_dict)
         # state: 
@@ -23,10 +20,7 @@ class Agent(Player):
         self.state = [0] * (num_cards + 1)  # plus 1 bc including top card on play deck in state
         self.cache_limit = cache_limit
         self.cache = []  # insert() and pop() later
-        self.discount_factor = discount_factor
         self.epsilon = epsilon
-        self.epsilon_final = epsilon_final
-        self.anneal = anneal
 
         # action space:
         # [play_red_0, play_red_1, ..., play_blue_reverse, play_wild_red, play_wild_yellow, ..., play_wild_draw_4_blue]
@@ -109,10 +103,6 @@ class Agent(Player):
             # get face value and color of card
             action_tuple = self.card_dict[action_card_idx]
             hand_tuple = self.card_dict[hand_card_idx]
-
-            # update agent's explore/exploit prob
-            if self.epsilon > self.epsilon_final:
-                self.epsilon -= self.anneal
 
             return (action_card_idx, action_tuple[0], action_tuple[1]), (hand_card_idx, hand_tuple[0], hand_tuple[1])
 
