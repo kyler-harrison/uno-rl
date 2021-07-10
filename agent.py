@@ -110,6 +110,10 @@ class Agent(Player):
             action_tuple = self.card_dict[action_card_idx]
             hand_tuple = self.card_dict[hand_card_idx]
 
+            # update agent's explore/exploit prob
+            if self.epsilon > self.epsilon_final:
+                self.epsilon -= self.anneal
+
             return (action_card_idx, action_tuple[0], action_tuple[1]), (hand_card_idx, hand_tuple[0], hand_tuple[1])
 
         else:
