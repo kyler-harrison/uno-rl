@@ -1,0 +1,30 @@
+game rules:
+	conventional first-to-have-no-cards-wins play style
+	sticking to 1 vs. 1 where other player is my simple strategy outlined in what.txt
+
+	108 cards:
+		25 red, blue, green, yellow:
+			1 number 0
+			2 numbers 1-9
+			2 reverse
+			2 skip
+			2 draw_2
+		4 wild
+		4 wild_plus_4
+
+	gameplay:
+		init:
+			deck rando shuffled
+			top card drawn
+
+		loop:
+			if player has card match color:
+				can play card
+			elif player has card match symbol, wild, or wild_plus_four:
+				can play card
+			else:
+				draws card from deck and checks above condition again, either plays or passes
+			
+			if all cards drawn from deck:
+				init
+
