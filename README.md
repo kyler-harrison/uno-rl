@@ -17,7 +17,7 @@ In an essence, a complete reinforcement learning algorithm is defined by a few v
 **Value function**: reward after each card play of the agent is defined as 0 if the game continues, 1 if the game is won, -1 if the opponent wins on its next card play.
 
 ## Results
-As a baseline, an agent that makes random decisions against the hardcoded opponent wins ~31% of the time over the course of 1 million games. After 1 million games of training, the agent wins ~34% of the time. Success? Not really. Failure? Science. 
+As a baseline, an agent that makes random decisions against the hardcoded opponent wins ~31% of the time over the course of 1 million games. After 1 million games of training, the "trained" agent wins ~34% of the time. Success? Not really. Failure? Science. 
 
 ## Things to Try Next
 I believe the main impediment in the agent's learning is the delayed reward it recieves. After the agent takes an action, it recieves a reward of 0 if the game continues, 
