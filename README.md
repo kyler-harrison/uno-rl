@@ -1,7 +1,7 @@
-## Reinforcement Learning in the Card Game Uno
+## Reinforcement learning in Uno
 This repo contains an implementation of a deep q neural network which aims to play the card game Uno optimally against a hardcoded strategy.
 
-## The RL Framework
+## The rl framework
 In an essence, a complete reinforcement learning algorithm is defined by a few vocab words: agent, environment, state, action, value function, and policy (see https://spinningup.openai.com/en/latest/spinningup/rl_intro.html for more detailed information).
 
 **Agent**: defined in src/agent.py
@@ -19,8 +19,7 @@ In an essence, a complete reinforcement learning algorithm is defined by a few v
 ## Results
 As a baseline, an agent that makes random decisions against the hardcoded opponent wins ~31% of the time over the course of 1 million games. After 1 million games of training, the "trained" agent wins ~34% of the time. Success? Not really. Failure? Science. 
 
-## Things to Try Next
-I believe the main impediment in the agent's learning is the delayed reward it recieves. After the agent takes an action, it recieves a reward of 0 if the game continues, 
+## Where do we go from here?
+I believe the main impediment to the agent's learning is the delayed reward it recieves. After the agent takes an action, it recieves a reward of 0 if the game continues, 
 1 if it wins the game, and -1 if it loses the game. This means that the agent recieves ~47 straight rewards of 0 until the average game terminates (see metrics/1e6_iters/std_out.txt). 
-Because of the ratio of 0 to non-zero rewards the agent recieves is ~47:1, I assume the neural network has essentially optimized to predict very low values in order to minimize MSE.
-In order to get the network to learn how to predict meaningful outputs, I believe a more frequent reward is necessary.
+I assume that because the ratio of 0 to non-zero rewards the agent recieves is ~47:1, the neural network was essentially optimized to predict very low q-values in order to minimize MSE, meaning that it did not learn to take optimal actions in order to maximize its future reward. In order to get the network to predict more meaningful outputs, an update in the agent's reward mechanism that would more frequently give non-zero rewards is necessary.
