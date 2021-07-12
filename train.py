@@ -43,7 +43,7 @@ def write_metrics(file_path, metrics_ls, mode):
 
 def main():
     start = time.time()
-    num_games = int(1e5)  # number of full games to simulate (guessing agent will get at least 10 plays each, so num_games*10 is ~train_iters)
+    num_games = int(1e6)  # number of full games to simulate (guessing agent will get at least 10 plays each, so num_games*10 is ~train_iters)
     cards_per_hand = 7
     kill_after = 200  # terminate game if plays > this 
 
@@ -53,7 +53,7 @@ def main():
     epsilon_final = 0.05  # where to stop decreasing explore prob
     anneal = (1 - epsilon_final) / num_games  # amount to decrease epsilon on each train pass
 
-    # TODO these are redefined in train loop below, should create reset functions or reorganize somehow 
+    # throwaway inits for training information
     g = Game()
     ag = Agent(g.num_unique_cards, g.card_dict, cache_limit, epsilon)
 
@@ -268,9 +268,7 @@ def main():
             print("=======================================================================")
             print()
 
-    # TODO write model after each iter
-    # write files (TODO write as you go in case training breaks)
-    # TODO write the other cumulative metrics
+    # write output files
     write_metrics(play_counts_f, play_counts, 'w')
     write_metrics(loss_f, loss_ot, 'w')
     write_metrics(time_f, time_ot, 'w')
