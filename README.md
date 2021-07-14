@@ -22,6 +22,6 @@ As a baseline, an agent that makes random decisions against the hardcoded oppone
 ## Where do we go from here?
 I believe the main impediment to the agent's learning is the delayed reward it recieves. After the agent takes an action, it recieves a reward of 0 if the game continues, 
 1 if it wins the game, and -1 if it loses the game. This means that the agent recieves ~47 straight rewards of 0 until the average game terminates (see metrics/1e6_iters/std_out.txt). 
-I assume that because the ratio of 0 to non-zero rewards the agent recieves is ~47:1, the neural network essentially optimizes to predict very low q-values in order to minimize MSE, meaning that it does not learn to take optimal actions in order to maximize its future reward. In order to get the network to predict more meaningful outputs, a new reward mechanism that gives non-zero rewards more frequently is necessary. Furthermore, there may be potential in different dqn architectures.
+I assume that because the ratio of 0 to non-zero rewards the agent recieves is ~47:1, the neural network essentially optimizes to predict very low q-values in order to minimize MSE, meaning that it does not learn to take optimal actions in order to maximize its future reward. In order to get the network to predict more meaningful outputs, a new reward mechanism that gives non-zero rewards more frequently is necessary. Furthermore, there may be potential in different dqn architectures. It may also help to train for many more iterations, but that requires many moneys.
 
 
